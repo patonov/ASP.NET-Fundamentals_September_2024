@@ -24,6 +24,6 @@ namespace CinemaApp.Web.Models
 
         public string Description { get; set; } = null!;
 
-
+        public virtual ICollection<CinemaMovie> MovieCinemas { get; set; } = new HashSet<CinemaMovie>();
     }
 }

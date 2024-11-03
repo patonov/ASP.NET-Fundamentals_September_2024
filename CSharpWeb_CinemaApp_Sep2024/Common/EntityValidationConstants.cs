@@ -15,5 +15,12 @@ namespace Common
             public const int MovieGenreMaxLength = 15;
 
         }
+
+        public static class Cinema
+        { 
+            public const int CinemaNameMaxLength = 50;
+
+            public const int CinemaNameMinLength = 3;
+        }
     }
 }

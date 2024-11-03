@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace CinemaApp.Web.ViewModels.Movie
+﻿namespace CinemaApp.Web.ViewModels.Movie
 {
+    using System.ComponentModel.DataAnnotations;
+    using static Common.EntityValidationMessages.Movie;
+
     public class AddMovieInputModel
     {
         public AddMovieInputModel() 
@@ -14,11 +10,11 @@ namespace CinemaApp.Web.ViewModels.Movie
             this.ReleaseDate = DateTime.UtcNow.ToString("MM/yyyy");
         }
 
-        [Required]
+        [Required(ErrorMessage = TitleRequiredMsg)]
         [MaxLength(40)]
         public string Title { get; set; } = null!;
 
-        [Required]
+        [Required(ErrorMessage = GenreRequiredMsg)]
         [MaxLength(12)]
         public string Genre { get; set; } = null!;
 
