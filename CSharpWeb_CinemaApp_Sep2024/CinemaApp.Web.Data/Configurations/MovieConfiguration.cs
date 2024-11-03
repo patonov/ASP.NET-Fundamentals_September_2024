@@ -25,10 +25,12 @@ namespace CinemaApp.Web.Data.Configurations
                 .IsRequired()
                 .HasMaxLength(MovieGenreMaxLength);
 
+
+
             builder.HasData(this.SeedMovies());
         }
 
-        private List<Movie> SeedMovies()
+        private IEnumerable<Movie> SeedMovies()
         {
             List<Movie> movies = new List<Movie>()
             {

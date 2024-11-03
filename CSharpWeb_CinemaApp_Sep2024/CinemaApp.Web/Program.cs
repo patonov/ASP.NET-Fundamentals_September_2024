@@ -20,6 +20,9 @@ namespace CinemaApp.Web
 
             builder.Services.AddControllersWithViews();
 
+
+
+
             WebApplication app = builder.Build();
 
             // Configure the HTTP request pipeline.
