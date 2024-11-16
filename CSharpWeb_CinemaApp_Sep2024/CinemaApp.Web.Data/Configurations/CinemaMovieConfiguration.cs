@@ -20,6 +20,27 @@ namespace CinemaApp.Web.Data.Configurations
 
             builder.HasOne(cm => cm.Cinema).WithMany(c => c.CinemaMovies).HasForeignKey(cm => cm.CinemaId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasData(this.GenerateCinemasMovies());
+        }
+
+        private IEnumerable<CinemaMovie> GenerateCinemasMovies() 
+        {
+            IEnumerable<CinemaMovie> cinemaMovies = new List<CinemaMovie>()
+            {
+                new CinemaMovie()
+                {
+                CinemaId = 1,
+                MovieId = 1,
+                },
+                new CinemaMovie()
+                { 
+                CinemaId = 2,
+                MovieId = 2,
+                }
+            };
+
+            return cinemaMovies;
         }
     }
 }
