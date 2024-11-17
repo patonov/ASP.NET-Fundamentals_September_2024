@@ -14,6 +14,7 @@ namespace CinemaApp.Web.Controllers
             this.cinemaDbContext = cinemaDbContext;
         }
 
+        [HttpGet]
         public IActionResult Index()
         { 
             IEnumerable<CinemaIndexViewModel> cinemas = this.cinemaDbContext
@@ -29,6 +30,11 @@ namespace CinemaApp.Web.Controllers
             return View(cinemas);
         }
 
+        [HttpGet]
+        public IActionResult Create()
+        { 
+            return View();
+        }
 
     }
 }
