@@ -19,6 +19,9 @@ namespace CinemaApp.Web.ViewModels.Cinema
         [MinLength(CinemaNameMinLength)]
         public string Name { get; set; } = null!;
 
+        [Required]
+        public string Location { get; set; } = null!;
+
         public bool IsSelected { get; set; }
     }
 }
