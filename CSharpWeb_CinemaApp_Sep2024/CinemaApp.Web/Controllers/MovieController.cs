@@ -104,12 +104,67 @@ namespace CinemaApp.Web.Controllers
                     {
                         Id = c.Id.ToString(),
                         Name = c.Name,
+                        Location = c.Location,
                         IsSelected = c.CinemaMovies.Any(cm => cm.Movie.Id == idValue)
-                    }).ToArrayAsync()
+                    }).ToListAsync()
             };
 
             return View(model);
         }
+
+        [HttpPost]
+        public async Task<IActionResult> AddToProgram(AddMovieToCinemaInputModel model)
+        {
+            if (!this.ModelState.IsValid) 
+            { 
+                return View(model);
+            }
+
+            bool IsIdValidInt = int.TryParse(model.Id, out int idValue);
+            if (!IsIdValidInt)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            Movie? movie = await this.dbContext.Movies.FirstOrDefaultAsync(x => x.Id == idValue);
+
+            if (movie == null) 
+            { 
+                return RedirectToAction(nameof(Index));
+            }
+
+            ICollection<CinemaMovie> entitiesToAdd = new List<CinemaMovie>();
+            foreach (CinemaCheckBoxItemInputModel cinemaInput in model.Cinemas)
+            {
+                if (cinemaInput.IsSelected)
+                {
+                    bool IsCinemaInputIdValidInt = int.TryParse(cinemaInput.Id, out int cinemaInputValue);
+                    if (!IsCinemaInputIdValidInt)
+                    {
+                        this.ModelState.AddModelError(string.Empty, "Invalid cinema selected.");
+                        return View(model);
+                    }
+
+                    Cinema? cinema = await this.dbContext.Cinemas.FirstOrDefaultAsync(c => c.Id == cinemaInputValue);
+                    if (cinema == null)
+                    {
+                        this.ModelState.AddModelError(string.Empty, "Invalid cinema selected.");
+                        return View(model);
+                    }
+
+                    entitiesToAdd.Add(new CinemaMovie() 
+                    { 
+                        Cinema = cinema,
+                        Movie = movie
+                    });
+                }
+            }
+            await this.dbContext.CinemasMovies.AddRangeAsync(entitiesToAdd);
+            await this.dbContext.SaveChangesAsync();
+
+            return this.RedirectToAction(nameof(Index), "Cinema");
+        }
+
 
     }
 }
