@@ -38,6 +38,8 @@ namespace GameZone.Data
         [ForeignKey(nameof(GenreId))]
         public Genre Genre { get; set; } = null!;
 
+        public bool IsDeleted { get; set; }
+
         [Required]
         public ICollection<GamerGame> GamersGames { get; set; } = new List<GamerGame>();
 

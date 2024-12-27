@@ -24,5 +24,11 @@ namespace GameZone.Data
                 new Genre { Id = 5, Name = "Racing" },
                 new Genre { Id = 6, Name = "Strategy" });
         }
+
+        public DbSet<Game> Games { get; set; }
+
+        public DbSet<Genre> Genres { get; set; }
+
+        public DbSet<GamerGame> GamersGames { get; set; } 
     }
 }
