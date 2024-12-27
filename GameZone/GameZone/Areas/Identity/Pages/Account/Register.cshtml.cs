@@ -28,7 +28,7 @@ namespace GameZone.Areas.Identity.Pages.Account
         private readonly IUserStore<IdentityUser> _userStore;
         private readonly IUserEmailStore<IdentityUser> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
-        private readonly IEmailSender _emailSender;
+        private IEmailSender _emailSender;
 
         public RegisterModel(
             UserManager<IdentityUser> userManager,
