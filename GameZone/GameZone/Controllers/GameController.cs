@@ -1,16 +1,38 @@
-﻿using GameZone.Models;
+﻿using GameZone.Data;
+using GameZone.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace GameZone.Controllers
 {
     [Authorize]
     public class GameController : Controller
     {
+        private GameZoneDbContext _dbContext;
+
+        public GameController(GameZoneDbContext dbContext)
+        {
+            _dbContext = dbContext;
+        }
+
         [HttpGet]
         public async Task<IActionResult> All()
         {
-            return View();
+            var model = await _dbContext.Games.Where(g => g.IsDeleted == false)
+                .Select(g => new GameInfoViewModel()
+                {
+                    Id = g.Id,
+                    Genre = g.Genre.Name,
+                    ImageUrl = g.ImageUrl,
+                    Publisher = g.Publisher.UserName ?? string.Empty,
+                    ReleasedOn = g.ReleasedOn.ToString("yyyy-MM-dd"),
+                    Title = g.Title,
+                })
+                .AsNoTracking()
+                .ToListAsync();
+
+            return View(model);
         }
 
         [HttpGet]
