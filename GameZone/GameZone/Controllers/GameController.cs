@@ -3,6 +3,8 @@ using GameZone.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
+using System.Security.Claims;
 
 namespace GameZone.Controllers
 {
@@ -36,17 +38,48 @@ namespace GameZone.Controllers
         }
 
         [HttpGet]
-        public IActionResult Add() 
+        public async Task<IActionResult> Add() 
         {
             var model = new GameViewModel();
+            model.Genres = await _dbContext.Genres.ToListAsync();
 
             return View(model);
         }
 
         [HttpPost]
         public async Task<IActionResult> Add(GameViewModel model)
-        {
-            return View();
+        {            
+            if (ModelState.IsValid == false)
+            {
+                model.Genres = await _dbContext.Genres.ToListAsync();
+
+                return View(model);
+            }
+
+            DateTime releasedOn;
+
+            if (DateTime.TryParseExact(model.ReleasedOn, "yyyy-MM-dd", CultureInfo.CurrentCulture, DateTimeStyles.None, out releasedOn) == false)
+            {
+                ModelState.AddModelError(nameof(model.ReleasedOn), "Invalid date format");
+                model.Genres = await _dbContext.Genres.ToListAsync();
+
+                return View(model);
+            }
+
+            Game game = new Game()
+            {
+                Description = model.Description,
+                GenreId = model.GenreId,
+                ImageUrl = model.ImageUrl,
+                PublisherId = GetCurrentUserId() ?? string.Empty,
+                ReleasedOn = releasedOn,
+                Title = model.Title
+            };
+
+            await _dbContext.Games.AddAsync(game);
+            await _dbContext.SaveChangesAsync();
+
+            return RedirectToAction(nameof(All));
         }
 
         [HttpGet]
@@ -90,6 +123,11 @@ namespace GameZone.Controllers
         public async Task<IActionResult> Delete(int id) 
         {
             return View();
+        }
+
+        private string? GetCurrentUserId()
+        { 
+           return User.FindFirstValue(ClaimTypes.NameIdentifier);
         }
     }
 }
