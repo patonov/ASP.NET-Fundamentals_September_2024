@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 using System.Security.Claims;
+using System.Security.Policy;
 
 namespace GameZone.Controllers
 {
@@ -85,14 +86,58 @@ namespace GameZone.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id) 
         {
-            var model = new GameViewModel();
+            var model = await _dbContext.Games.Where(g => g.Id == id).Where(g => g.IsDeleted == false)
+                .AsNoTracking()
+                .Select(g => new GameViewModel() 
+                { 
+                Description = g.Description,
+                GenreId = g.GenreId,
+                ImageUrl = g.ImageUrl,
+                ReleasedOn = g.ReleasedOn.ToString("yyyy-MM-dd"),
+                Title = g.Title
+                }).FirstOrDefaultAsync();
+
+            model.Genres = await GetGenres();
+
             return View(model);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(GameViewModel model)
-        { 
-            return View(model);
+        public async Task<IActionResult> Edit(GameViewModel model, int id)
+        {
+            if (ModelState.IsValid == false)
+            {
+                model.Genres = await _dbContext.Genres.ToListAsync();
+
+                return View(model);
+            }
+
+            DateTime releasedOn;
+
+            if (DateTime.TryParseExact(model.ReleasedOn, "yyyy-MM-dd", CultureInfo.CurrentCulture, DateTimeStyles.None, out releasedOn) == false)
+            {
+                ModelState.AddModelError(nameof(model.ReleasedOn), "Invalid date format");
+                model.Genres = await _dbContext.Genres.ToListAsync();
+
+                return View(model);
+            }
+
+            Game? entity = await _dbContext.Games.FindAsync(id);
+            if (entity == null || entity.IsDeleted == true) 
+            {
+                throw new ArgumentException("Invalid Id");
+            }
+
+            entity.Description = model.Description;
+            entity.GenreId = model.GenreId;
+            entity.ImageUrl = model.ImageUrl;
+            entity.PublisherId = GetCurrentUserId() ?? string.Empty;
+            entity.ReleasedOn = releasedOn;
+            entity.Title = model.Title;
+
+            await _dbContext.SaveChangesAsync();
+
+            return RedirectToAction(nameof(All));
         }
 
         [HttpGet]
@@ -128,6 +173,11 @@ namespace GameZone.Controllers
         private string? GetCurrentUserId()
         { 
            return User.FindFirstValue(ClaimTypes.NameIdentifier);
+        }
+
+        private async Task<List<Genre>> GetGenres()
+        { 
+            return await _dbContext.Genres.ToListAsync();
         }
     }
 }
