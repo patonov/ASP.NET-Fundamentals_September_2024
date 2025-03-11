@@ -143,19 +143,80 @@ namespace GameZone.Controllers
         [HttpGet]
         public async Task<IActionResult> MyZone()
         {
-            return View(new List<GameInfoViewModel>());
+            string currentUserId = GetCurrentUserId() ?? string.Empty;
+
+            var model = await _dbContext.Games
+                .Where(g => g.IsDeleted == false)
+                .Where(g => g.GamersGames.Any(gr => gr.GamerId == currentUserId))
+                .Select(g => new GameInfoViewModel()
+                {
+                    Id = g.Id,
+                    Genre = g.Genre.Name,
+                    ImageUrl = g.ImageUrl,
+                    Publisher = g.Publisher.UserName ?? string.Empty,
+                    ReleasedOn = g.ReleasedOn.ToString("yyyy-MM-dd"),
+                    Title = g.Title,
+                })
+                .AsNoTracking()
+                .ToListAsync();
+
+            return View(model);
         }
 
         [HttpGet]
         public async Task<IActionResult> AddToMyZone(int id)
         {
-            return View();
+            Game? entity = await _dbContext.Games
+                .Where(g => g.Id == id)
+                .Include(g => g.GamersGames)
+                .FirstOrDefaultAsync();
+
+            if (entity == null || entity.IsDeleted == true)
+            {
+                throw new ArgumentException("Invalid Id");
+            }
+
+            string currentUserId = GetCurrentUserId() ?? string.Empty;
+
+            if (entity.GamersGames.Any(gr => gr.GamerId == currentUserId) == false)
+            {
+                entity.GamersGames.Add(new GamerGame()
+                {
+                    GamerId = currentUserId,
+                    GameId = id
+                });
+
+                await _dbContext.SaveChangesAsync();
+            }
+            
+            return RedirectToAction(nameof(MyZone));
         }
 
         [HttpGet]
         public async Task<IActionResult> StrikeOut(int id)
         {
-            return View();
+            Game? entity = await _dbContext.Games
+                .Where(g => g.Id == id)
+                .Include(g => g.GamersGames)
+                .FirstOrDefaultAsync();
+
+            if (entity == null || entity.IsDeleted == true)
+            {
+                throw new ArgumentException("Invalid Id");
+            }
+
+            string currentUserId = GetCurrentUserId() ?? string.Empty;
+
+            GamerGame? gamerGame = entity.GamersGames.FirstOrDefault(gr => gr.GamerId == currentUserId);
+
+            if (gamerGame != null)
+            {
+                entity.GamersGames.Remove(gamerGame);
+
+                await _dbContext.SaveChangesAsync();
+            }
+
+            return RedirectToAction(nameof(MyZone));
         }
 
         [HttpGet]
