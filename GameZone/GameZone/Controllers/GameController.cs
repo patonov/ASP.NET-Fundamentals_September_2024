@@ -222,7 +222,20 @@ namespace GameZone.Controllers
         [HttpGet]
         public async Task<IActionResult> Details(int id) 
         {
-            return View();
+            var model = await _dbContext.Games.Where(g => g.Id == id).Where(g => g.IsDeleted == false)
+                .AsNoTracking()
+                .Select(g => new GameDetailsViewModel()
+                {
+                    Id = g.Id,
+                    Description = g.Description,
+                    Genre = g.Genre.Name,
+                    ImageUrl = g.ImageUrl,
+                    ReleasedOn = g.ReleasedOn.ToString("yyyy-MM-dd"),
+                    Title = g.Title,
+                    Publisher = g.Publisher.UserName ?? string.Empty,
+                }).FirstOrDefaultAsync();
+                        
+            return View(model);
         }
 
         [HttpGet]
