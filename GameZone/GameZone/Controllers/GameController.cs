@@ -128,10 +128,17 @@ namespace GameZone.Controllers
                 throw new ArgumentException("Invalid Id");
             }
 
+            string currentUserId = GetCurrentUserId() ?? string.Empty;
+
+            if (entity.PublisherId != currentUserId) 
+            {
+                RedirectToAction(nameof(All));
+            }
+
             entity.Description = model.Description;
             entity.GenreId = model.GenreId;
             entity.ImageUrl = model.ImageUrl;
-            entity.PublisherId = GetCurrentUserId() ?? string.Empty;
+            entity.PublisherId = currentUserId;
             entity.ReleasedOn = releasedOn;
             entity.Title = model.Title;
 
@@ -178,17 +185,19 @@ namespace GameZone.Controllers
 
             string currentUserId = GetCurrentUserId() ?? string.Empty;
 
-            if (entity.GamersGames.Any(gr => gr.GamerId == currentUserId) == false)
+            if (entity.GamersGames.Any(gr => gr.GamerId == currentUserId))
             {
-                entity.GamersGames.Add(new GamerGame()
-                {
-                    GamerId = currentUserId,
-                    GameId = id
-                });
-
-                await _dbContext.SaveChangesAsync();
+                RedirectToAction(nameof(All));
             }
-            
+
+            entity.GamersGames.Add(new GamerGame()
+            {
+                GamerId = currentUserId,
+                GameId = entity.Id
+            });
+
+            await _dbContext.SaveChangesAsync();
+
             return RedirectToAction(nameof(MyZone));
         }
 
